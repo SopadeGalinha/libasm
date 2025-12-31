@@ -18,3 +18,13 @@ ft_strcmp:
 .done:
 	xor     eax, eax            ; If strings are equal, return 0
 	ret
+
+
+; Explanation:
+; rdi = s1 (argument 1)
+; rsi = s2 (argument 2)
+
+; 1) Load zero-extended bytes from s1/s2.
+; 2) If differ: return (unsigned)s1 - (unsigned)s2 in eax.
+; 3) If equal and not NUL: increment both pointers and repeat.
+; 4) If both bytes are NUL: return 0.

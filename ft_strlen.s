@@ -12,6 +12,10 @@ ft_strlen:
     ret                         ; return len in rax
 
 
-; Registers Used:
-;   RDI: Points to the input string.
-;   RAX: Stores the string length (output)
+; Explanation:
+; rdi = string;
+; rax = counter/offset and return length.
+; 1) Initialize rax = 0 (length/offset).
+; 2) Loop: compare byte at [rdi + rax] to 0.
+; 3) If not zero, inc rax and repeat.
+; 4) If zero, return rax (length).
