@@ -28,17 +28,17 @@ Beginner-friendly x86_64 assembly guide (Linux) with key/value tables for regist
 | r14  | Callee-saved. Aliases: r14d/r14w/r14b. |
 | r15  | Callee-saved. Aliases: r15d/r15w/r15b. |
 
-## Flags (RFLAGS) essentials
-| Key | Value |
-|-----|-------|
-| ZF  | Zero Flag: 1 when result is zero (used by `je/jne`). |
-| CF  | Carry Flag: carry/borrow for unsigned arithmetic; used by `jc/jb/jae/adc/sbb`. |
-| SF  | Sign Flag: copy of the sign bit of the result. |
-| OF  | Overflow Flag: signed overflow occurred. |
-| PF  | Parity Flag: parity of low byte (rarely used). |
-| AF  | Adjust Flag: BCD adjust (rare in modern code). |
-| DF  | Direction Flag: string ops direction (0 = forward). |
-| IF  | Interrupt Flag: mask external interrupts (kernel/boot use). |
+## Flags (RFLAGS): meaning and when they change
+| Flag | Meaning | Set/Cleared by |
+|------|---------|----------------|
+| ZF (Zero) | 1 if result is zero | `cmp`, `test`, arithmetic/logic; **not** by `mov` |
+| CF (Carry) | Unsigned carry/borrow | `add/sub`, shifts; cleared by `xor reg,reg`; **not** by `inc/dec` |
+| SF (Sign) | Copy of MSB of result | Arithmetic/logic; tracks sign bit |
+| OF (Overflow) | Signed overflow | Arithmetic on signed values (e.g., `add`, `sub`, `imul`) |
+| PF (Parity) | Parity of low byte | Updated by arithmetic/logic (rarely used) |
+| AF (Adjust) | BCD carry between nibble | Updated by `add/sub` (rarely used) |
+| DF (Direction) | String op direction | Set/cleared by `std`/`cld` (0 = forward) |
+| IF (Interrupt) | Mask external interrupts | `sti`/`cli` (kernel/boot code) |
 
 ## Core instructions (what they change)
 | Key | Value |
@@ -74,19 +74,33 @@ Beginner-friendly x86_64 assembly guide (Linux) with key/value tables for regist
 | `[base + index*scale + disp]` | Full form; scale = 1,2,4,8. |
 | `byte/word/dword/qword [..]` | Size hint for the load/store. |
 
-## Jump conditions cheat sheet
-| Key | Value |
-|-----|-------|
-| `je/jz` | Jump if ZF=1 (equal/zero). |
-| `jne/jnz` | Jump if ZF=0 (not equal). |
-| `ja` | Jump if CF=0 and ZF=0 (unsigned >). |
-| `jb/jc` | Jump if CF=1 (unsigned <). |
-| `jae/jnc` | Jump if CF=0 (unsigned ≥). |
-| `jbe` | Jump if CF=1 or ZF=1 (unsigned ≤). |
-| `jg` | Jump if ZF=0 and SF=OF (signed >). |
-| `jl` | Jump if SF≠OF (signed <). |
-| `jge` | Jump if SF=OF (signed ≥). |
-| `jle` | Jump if ZF=1 or SF≠OF (signed ≤). |
+## Conditional jumps (what flags they read)
+| Jump | Condition | Flags used |
+|------|-----------|------------|
+| `je/jz` | equal / zero | ZF=1 |
+| `jne/jnz` | not equal | ZF=0 |
+| `ja` | unsigned > | CF=0 && ZF=0 |
+| `jb/jc` | unsigned < | CF=1 |
+| `jae/jnc` | unsigned ≥ | CF=0 |
+| `jbe` | unsigned ≤ | CF=1 \|\| ZF=1 |
+| `jg` | signed > | ZF=0 && SF=OF |
+| `jl` | signed < | SF≠OF |
+| `jge` | signed ≥ | SF=OF |
+| `jle` | signed ≤ | ZF=1 \|\| SF≠OF |
+
+## How common instructions affect flags
+| Instr | ZF (zero) | CF (carry) | SF (sign) | OF (overflow) | Notes |
+|-------|-----------|------------|-----------|---------------|-------|
+| `mov dst, src` | — | — | — | — | Flags unchanged |
+| `cmp a, b` | 1 if a==b | borrow from a-b | sign of (a-b) | signed overflow on (a-b) | No result stored |
+| `test a, b` | 1 if (a&b)==0 | 0 | sign of (a&b) | 0 | AND for flags only |
+| `add dst, src` | result==0 | carry out | sign of result | signed overflow | PF/AF also updated |
+| `sub dst, src` | result==0 | borrow | sign of result | signed overflow | PF/AF also updated |
+| `inc dst` | result==0 | **unchanged** | sign of result | signed overflow | CF not touched |
+| `dec dst` | result==0 | **unchanged** | sign of result | signed overflow | CF not touched |
+| `and/or/xor dst, src` | result==0 | 0 | sign of result | 0 | Logical ops clear CF/OF |
+| `shl/shr dst, k` | result==0 | last bit shifted | sign of result | undefined for many counts | Use `sar` for signed right |
+| `sar dst, k` | result==0 | last bit shifted | sign of result | undefined for many counts | Arithmetic right (keeps sign) |
 
 
 ## Minimal Hello World (syscall example)
