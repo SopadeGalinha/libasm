@@ -34,8 +34,12 @@ int test_ft_write(void *handle) {
     close(p[1]);
     errno = 0; w = f(1, "", 0);
     fails += tag(w == 0);
-    errno = 0; w = f(1, "A", 1);
-    fails += tag(w == 1);
+    int t[2]; pipe(t);
+    errno = 0; w = f(t[1], "A", 1);
+    char chk[2] = {0};
+    read(t[0], chk, 1);
+    fails += tag(w == 1 && chk[0] == 'A');
+    close(t[0]); close(t[1]);
     errno = 123; w = f(1, "B", 0);
     fails += tag(w == 0 && errno == 123); // success must not clobber errno
     close(fds[0]); close(fds[1]);
