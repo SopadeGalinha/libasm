@@ -20,9 +20,12 @@ int test_ft_strcpy(void *handle) {
     char *ret = f(buf, "single");
     fails += tag(ret == buf);
     char longsrc[200]; memset(longsrc, 'k', sizeof(longsrc)); longsrc[199] = '\0';
-    fails += tag(strcmp(f(buf, longsrc), longsrc) == 0);
+    char buf_long[256];
+    fails += tag(strcmp(f(buf_long, longsrc), longsrc) == 0);
     char small[2];
     fails += tag(strcmp(f(small, "a"), "a") == 0);
+    char term[4]; memset(term, 'X', sizeof(term)); f(term, "xy");
+    fails += tag(term[2] == '\0');
     char prefill[8]; memset(prefill, 'Z', sizeof(prefill)); f(prefill, "");
     fails += tag(prefill[0] == '\0');
     line_tail();
