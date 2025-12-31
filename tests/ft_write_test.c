@@ -36,6 +36,8 @@ int test_ft_write(void *handle) {
     fails += tag(w == 0);
     errno = 0; w = f(1, "A", 1);
     fails += tag(w == 1);
+    errno = 123; w = f(1, "B", 0);
+    fails += tag(w == 0 && errno == 123); // success must not clobber errno
     close(fds[0]); close(fds[1]);
     line_tail();
     return fails;

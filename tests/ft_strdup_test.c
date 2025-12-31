@@ -32,6 +32,15 @@ int test_ft_strdup(void *handle) {
     fails += tag(s8 && strlen(s8) == 511); free(s8);
     char *s9 = f("end");
     fails += tag(s9 && s9[strlen(s9)] == '\0'); free(s9);
+    char orig[] = "independent";
+    char *s10 = f(orig);
+    if (s10) {
+        s10[0] = 'X';
+        fails += tag(orig[0] == 'i');
+        free(s10);
+    } else {
+        fails += tag(0);
+    }
     line_tail();
     return fails;
 }
