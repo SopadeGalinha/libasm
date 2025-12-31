@@ -42,36 +42,36 @@ all: $(NAME)
 	@echo "$(CLR_GREEN)[OK]$(CLR_RESET) Built $(NAME)"
 
 $(NAME): $(OBJS)
-	$(AR) $(NAME) $(OBJS)
+	@$(AR) $(NAME) $(OBJS)
 
 $(SHARED): $(OBJS_AVAIL) $(OBJS_BONUS_AVAIL)
-	$(CC) -shared -o $(SHARED) $(OBJS_AVAIL) $(OBJS_BONUS_AVAIL)
+	@$(CC) -shared -o $(SHARED) $(OBJS_AVAIL) $(OBJS_BONUS_AVAIL)
 
 %.o: %.s
-	$(NASM) $(NASMFLAGS) $< -o $@
+	@$(NASM) $(NASMFLAGS) $< -o $@
 
 test: $(SHARED) $(TEST_BIN)
 	@echo "$(CLR_YEL)[*]$(CLR_RESET) Running tests"
 	@LD_LIBRARY_PATH=. $(TEST_BIN) || true
 
 $(TEST_BIN): $(TEST_OBJS) $(SHARED)
-	$(CC) $(CFLAGS) -I. $(TEST_OBJS) $(LDFLAGS) -o $@
+	@$(CC) $(CFLAGS) -I. $(TEST_OBJS) $(LDFLAGS) -o $@
 
 $(TEST_DIR)/%.o: $(TEST_DIR)/%.c
-	$(CC) $(CFLAGS) -I. -c $< -o $@
+	@$(CC) $(CFLAGS) -I. -c $< -o $@
 
 bonus: $(OBJS) $(OBJS_BONUS)
-	$(AR) $(NAME) $(OBJS) $(OBJS_BONUS)
+	@$(AR) $(NAME) $(OBJS) $(OBJS_BONUS)
 
 clean:
-	$(RM) $(OBJS)
-	$(RM) $(TEST_OBJS)
-	$(RM) $(OBJS_BONUS)
+	@$(RM) $(OBJS)
+	@$(RM) $(TEST_OBJS)
+	@$(RM) $(OBJS_BONUS)
 
 fclean: clean
-	$(RM) $(NAME)
-	$(RM) $(SHARED)
-	$(RM) $(TEST_BIN)
+	@$(RM) $(NAME)
+	@$(RM) $(SHARED)
+	@$(RM) $(TEST_BIN)
 
 re: fclean all
 
