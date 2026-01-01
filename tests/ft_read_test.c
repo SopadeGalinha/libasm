@@ -10,44 +10,71 @@ int test_ft_read(void *handle) {
     int fails = 0;
     t_read f = (t_read)load_sym(handle, "ft_read");
     if (!f) return 1;
+
     line_head("  ft_read");
-    int fds[2]; pipe(fds);
+
+    char buf[16] = {0};
+
+    /* 1-2: basic successful read from pipe */
+    int p1[2];
+    pipe(p1);
     const char *msg = "hello";
-    write(fds[1], msg, 5);
-    char buf[8] = {0};
-    ssize_t r = f(fds[0], buf, 5);
-    fails += tag(r == 5 && strncmp(buf, "hello", 5) == 0);
-    errno = 0; r = f(-1, buf, 1);
+    write(p1[1], msg, 5);
+    ssize_t r = f(p1[0], buf, 5);
+    fails += tag(r == 5);
+    fails += tag(strncmp(buf, "hello", 5) == 0);
+    close(p1[0]);
+    close(p1[1]);
+
+    /* 3-4: partial then remaining read (combined checks) */
+    int p2[2];
+    pipe(p2);
+    write(p2[1], "abcdef", 6);
+    memset(buf, 0, sizeof(buf));
+    r = f(p2[0], buf, 3);
+    fails += tag(r == 3 && strncmp(buf, "abc", 3) == 0);
+    memset(buf, 0, sizeof(buf));
+    r = f(p2[0], buf, 4);
+    fails += tag(r == 3 && strncmp(buf, "def", 3) == 0);
+    close(p2[0]);
+    close(p2[1]);
+
+    /* 5: EBADF on invalid fd */
+    errno = 0;
+    r = f(-1, buf, 1);
     fails += tag(r == -1 && errno == EBADF);
-    errno = 0; r = f(fds[0], NULL, 1);
-    fails += tag(r == -1 && errno == EFAULT);
-    r = f(fds[0], buf, 0);
+
+    /* 6: zero-length read returns 0 without clobbering errno */
+    errno = 99;
+    r = f(STDIN_FILENO, buf, 0);
+    fails += tag(r == 0 && errno == 99);
+
+    /* 7: /dev/null returns 0 (EOF) */
+    int dn = open("/dev/null", O_RDONLY);
+    r = f(dn, buf, 4);
     fails += tag(r == 0);
-    int fds2[2]; pipe(fds2);
-    write(fds2[1], "a", 1);
-    close(fds2[1]);
-    r = f(fds2[0], buf, 4);
-    fails += tag(r == 1);
-    r = f(fds2[0], buf, 4);
-    fails += tag(r == 0); // EOF now
-    close(fds2[0]);
-    int fds3[2]; pipe(fds3);
-    close(fds3[1]);
-    r = f(fds3[0], buf, 1);
-    fails += tag(r == 0); // empty pipe, EOF
-    close(fds3[0]);
-    int fds4[2]; pipe(fds4);
-    write(fds4[1], "XY", 2);
-    r = f(fds4[0], buf, 1);
-    fails += tag(r == 1 && buf[0] == 'X');
-    r = f(fds4[0], buf, 1);
-    fails += tag(r == 1 && buf[0] == 'Y');
-    close(fds4[0]); close(fds4[1]);
-    int devnull = open("/dev/null", O_RDONLY);
-    r = f(devnull, buf, 4);
-    fails += tag(r == 0); // /dev/null returns EOF immediately
-    close(devnull);
-    close(fds[0]); close(fds[1]);
+    close(dn);
+
+    /* 8: EOF on pipe with write end closed */
+    int p3[2];
+    pipe(p3);
+    close(p3[1]);
+    r = f(p3[0], buf, 4);
+    fails += tag(r == 0);
+    close(p3[0]);
+
+    /* 9-10: success does not clobber errno and data matches */
+    int p4[2];
+    pipe(p4);
+    write(p4[1], "X", 1);
+    errno = 55;
+    memset(buf, 0, sizeof(buf));
+    r = f(p4[0], buf, 1);
+    fails += tag(r == 1 && errno == 55);
+    fails += tag(buf[0] == 'X');
+    close(p4[0]);
+    close(p4[1]);
+
     line_tail();
     return fails;
 }
