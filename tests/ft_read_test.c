@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include "test_common.h"
@@ -9,7 +10,7 @@ int test_ft_read(void *handle) {
     int fails = 0;
     t_read f = (t_read)load_sym(handle, "ft_read");
     if (!f) return 1;
-    line_head("ft_read");
+    line_head("  ft_read");
     int fds[2]; pipe(fds);
     const char *msg = "hello";
     write(fds[1], msg, 5);
@@ -42,6 +43,10 @@ int test_ft_read(void *handle) {
     r = f(fds4[0], buf, 1);
     fails += tag(r == 1 && buf[0] == 'Y');
     close(fds4[0]); close(fds4[1]);
+    int devnull = open("/dev/null", O_RDONLY);
+    r = f(devnull, buf, 4);
+    fails += tag(r == 0); // /dev/null returns EOF immediately
+    close(devnull);
     close(fds[0]); close(fds[1]);
     line_tail();
     return fails;
