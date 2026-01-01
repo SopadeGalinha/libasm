@@ -27,3 +27,12 @@ ft_strdup:
 .fail:
     add     rsp, 8              ; pop saved src
     ret
+
+; Explanation:
+; rdi = src (argument 1)
+; returns: newly allocated duplicate pointer in rax, or NULL on malloc failure.
+; 1) Save src on the stack, call ft_strlen to get len.
+; 2) malloc(len + 1) for the copy; on NULL return NULL.
+; 3) Restore src pointer; keep dst in rdx for final return.
+; 4) Copy bytes from src to dst until the copied byte is '\0'.
+; 5) Return the dst pointer saved in rdx.

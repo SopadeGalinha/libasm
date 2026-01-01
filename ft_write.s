@@ -1,3 +1,4 @@
+
 global ft_write
 extern __errno_location
 extern signal
@@ -32,3 +33,13 @@ ft_write:
     pop     r13
     pop     r12
     ret
+
+; Explanation:
+; rdi = fd, rsi = buf, rdx = count
+; returns: bytes written in rax, or -1 on error with errno set.
+; 1) Save callee-saved regs and stash args because we call signal.
+; 2) Call signal(SIGPIPE, SIG_IGN) so writing to a closed pipe gives -EPIPE instead of killing the process.
+; 3) Restore args, issue SYS_write (rax = 1).
+; 4) On success (rax >= 0) return rax.
+; 5) On error: rax has -errno; store +errno via __errno_location and return -1.
+; 6) Pop saved registers before returning.

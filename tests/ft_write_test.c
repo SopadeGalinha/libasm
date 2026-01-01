@@ -9,7 +9,7 @@ int test_ft_write(void *handle) {
     int fails = 0;
     t_write f = (t_write)load_sym(handle, "ft_write");
     if (!f) return 1;
-    line_head("ft_write");
+    line_head(" ft_write");
     int fds[2]; pipe(fds);
     const char *msg = "hi";
     ssize_t w = f(fds[1], msg, 2);
