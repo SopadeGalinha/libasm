@@ -13,13 +13,8 @@ OBJS		= $(SRCS:.s=.o)
 SRCS_AVAIL	= $(wildcard $(SRCS))
 OBJS_AVAIL	= $(SRCS_AVAIL:.s=.o)
 
-# Bonus sources and objects (add files when implemented)
-SRCS_BONUS	= ft_atoi_base_bonus.s ft_list_push_front_bonus.s ft_list_size_bonus.s ft_list_sort_bonus.s ft_list_remove_if_bonus.s
-OBJS_BONUS	= $(SRCS_BONUS:.s=.o)
-
-# Available bonus
-SRCS_BONUS_AVAIL = $(wildcard $(SRCS_BONUS))
-OBJS_BONUS_AVAIL = $(SRCS_BONUS_AVAIL:.s=.o)
+SRCS_BONUS	= 
+OBJS_BONUS	= 
 
 # Tests
 TEST_DIR	= tests
@@ -44,8 +39,8 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	@$(AR) $(NAME) $(OBJS)
 
-$(SHARED): $(OBJS_AVAIL) $(OBJS_BONUS_AVAIL)
-	@$(CC) -shared -o $(SHARED) $(OBJS_AVAIL) $(OBJS_BONUS_AVAIL)
+$(SHARED): $(OBJS_AVAIL)
+	@$(CC) -shared -o $(SHARED) $(OBJS_AVAIL)
 
 %.o: %.s
 	@$(NASM) $(NASMFLAGS) $< -o $@
@@ -60,8 +55,8 @@ $(TEST_BIN): $(TEST_OBJS) $(SHARED)
 $(TEST_DIR)/%.o: $(TEST_DIR)/%.c
 	@$(CC) $(CFLAGS) -I. -c $< -o $@
 
-bonus: $(OBJS) $(OBJS_BONUS)
-	@$(AR) $(NAME) $(OBJS) $(OBJS_BONUS)
+bonus:
+	@echo "No bonus files present"
 
 clean:
 	@$(RM) $(OBJS)

@@ -46,15 +46,6 @@ NASM x86_64 reimplementations of a small libc subset for the 42 Libasm subject (
 - `ft_read` returns 0 when `count == 0` and sets `errno = EFAULT` when `buf == NULL` with `count > 0`; negative syscall returns map to `errno` via `__errno_location`.
 - `ft_strdup` uses `malloc(len + 1)` and `ft_strcpy`; it returns NULL on allocation failure.
 
-### Bonus
-Required prototypes per the subject:
-
-- `int ft_atoi_base(char *str, char *base);`
-- `void ft_list_push_front(t_list **begin_list, void *data);`
-- `int ft_list_size(t_list *begin_list);`
-- `void ft_list_sort(t_list **begin_list, int (*cmp)());`
-- `void ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(), void (*free_fct)(void *));`
-
 ### Repository layout
 - `ft_*.s` — assembly sources for mandatory symbols
 - `tests/` — test sources and harness (`tests/run_tests` binary is built by `make test`)
